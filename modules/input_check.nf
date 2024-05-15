@@ -8,28 +8,32 @@ workflow INPUT_CHECK {
 
     main:
     samplesheet
-        .splitCsv(header:true, sep:',')
-        .map { row -> fastq_channel(row) }
-        .set { reads }
+        .splitCsv(header:true, sep:'\t')
+        .map { row -> trace_channel(row) }
+        .set { traces }
 
     emit:
-    reads // channel: [ val(meta), [ reads ] ]
+    traces // channel: [ val(meta), [ reads ] ]
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def fastq_channel(LinkedHashMap row) {
+def trace_channel(LinkedHashMap row) {
     meta = [:]
-    meta.sample_id    = row.patient_id
-    meta.library_id   = row.library_id
-    meta.readgroup_id = row.readgroup_id
+    meta.sample_id    = row.sample_id
+    meta.report       = row.report
 
     array = []
-    if (!file(row.R1).exists()) {
-        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.R1}"
+    if (!file(row.fwd).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Forward trace does not exist!\n${row.fwd}"
     }
-    if (!file(row.R2).exists()) {
-        exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.R2}"
+    if (row.rev) {
+        if (!file(row.rev).exists()) {
+            exit 1, "ERROR: Please check input samplesheet -> Reverse trace does not exist!\n${row.rev}"
+        }
+        array = [ meta, [ file(row.fwd), file(row.rev) ] ]
+    } else {
+            array = [ meta, [ file(row.fwd) ] ]
     }
-    array = [ meta, [ file(row.R1), file(row.R2) ] ]
+
     return array
 }

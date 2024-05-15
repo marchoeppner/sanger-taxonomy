@@ -2,13 +2,12 @@
 
 nextflow.enable.dsl = 2
 
-// TODO: Update this block with a description and the name of the pipeline
 /**
 ===============================
-Pipeline
+Sanger taxonomy pipeline
 ===============================
 
-This Pipeline performs ....
+This Pipeline performs taxonomic profiling of Sanger-sequenced amplicons
 
 ### Homepage / git
 git@github.com:marchoeppner/pipeline.git
@@ -22,21 +21,18 @@ summary = [:]
 
 run_name = (params.run_name == false) ? "${workflow.sessionId}" : "${params.run_name}"
 
-WorkflowMain.initialise(workflow, params, log)
+WorkflowSANGER_TAXONOMY.initialise(workflow, params, log)
 
-// TODO: Rename this and the file under lib/ to something matching this pipeline (e.g. WorkflowAmplicons)
 WorkflowPipeline.initialise(params, log)
 
-// TODO: Rename this to something matching this pipeline, e.g. "AMPLICONS"
-include { MAIN } from './workflows/main'
+include { SANGER_TAXONOMY } from './workflows/sanger_taxonomy'
 
 multiqc_report = Channel.from([])
 
 workflow {
-    // TODO: Rename to something matching this pipeline (see above)
-    MAIN()
+    SANGER_TAXONOMY()
 
-    multiqc_report = multiqc_report.mix(MAIN.out.qc).toList()
+    multiqc_report = multiqc_report.mix(SANGER_TAXONOMY.out.qc).toList()
 }
 
 workflow.onComplete {

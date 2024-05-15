@@ -1,0 +1,7 @@
+name: tracy_basecall
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconda::tracy=0.7.6
