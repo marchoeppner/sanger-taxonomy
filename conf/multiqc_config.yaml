@@ -24,3 +24,16 @@ top_modules:
 report_section_order:
     software_versions:
         order: -1001
+
+table_columns_visible:
+  FastQC:
+    percent_duplicates: False
+    total_sequences: False
+            
+remove_sections:
+    - fastqc_sequence_counts
+    - fastqc_per_sequence_quality_scores
+    - fastqc_sequence_duplication_levels
+    - fastqc_adapter_content
+    - fastqc_top_overrepresented_sequences
+    - fastqc_status_checks

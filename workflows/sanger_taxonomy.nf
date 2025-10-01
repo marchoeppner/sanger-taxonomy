@@ -59,13 +59,11 @@ workflow SANGER_TAXONOMY {
     )
     ch_versions = ch_versions.mix(TRACY_BASECALL.out.versions)
 
-    TRACY_BASECALL.out.reads.view()
-
-    //FASTQC(
-    //    TRACY_BASECALL.out.reads
-    //)
-    //ch_versions = ch_versions.mix(FASTQC.out.versions)
-    //multiqc_files = multiqc_files.mix(FASTQC.out.zip)
+    FASTQC(
+        TRACY_BASECALL.out.reads
+    )
+    ch_versions = ch_versions.mix(FASTQC.out.versions)
+    multiqc_files = multiqc_files.mix(FASTQC.out.zip.map {m,z -> z})
 
     // Assign taxonomy to sequence
     BLAST_TAXONOMY(
@@ -75,6 +73,8 @@ workflow SANGER_TAXONOMY {
         ch_taxdb.collect(),
         ch_blocklist.collect()
     )
+
+    multiqc_files = multiqc_files.mix(BLAST_TAXONOMY.out.qc)
 
     CUSTOM_DUMPSOFTWAREVERSIONS(
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
