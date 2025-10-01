@@ -18,11 +18,11 @@ workflow INPUT_CHECK {
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
 def trace_channel(LinkedHashMap row) {
-    meta = [:]
-    meta.sample_id    = row.sample_id
-    meta.report       = row.report
+    def meta = [:]
+    meta.sample_id    = row.sample
+    meta.report       = row.report ? row.report : row.sample
 
-    array = []
+    def array = []
     if (!file(row.fwd).exists()) {
         exit 1, "ERROR: Please check input samplesheet -> Forward trace does not exist!\n${row.fwd}"
     }

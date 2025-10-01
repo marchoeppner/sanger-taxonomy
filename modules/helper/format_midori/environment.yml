@@ -1,7 +1,7 @@
-name: fastp
+name: helper_format_midori
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - bioconda::fastp=0.23.4
+  - bioconda::aminoextract=0.3.1

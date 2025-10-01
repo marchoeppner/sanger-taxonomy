@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/marchoeppner/sanger-taxonomy//nextflow_schema.json",
+  "title": "marchoeppner/sanger-taxonomy pipeline parameters",
+  "description": "Sanger Taxonomy Pipeline",
+  "type": "object",
+  "$defs": {
+    "input_output_options": {
+      "title": "Input/output options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define where the pipeline should find input data and save output data.",
+      "required": ["input", "database", "outdir", "reference_base", "run_name"],
+      "properties": {
+        "input": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "schema": "assets/schema_input.json",
+          "mimetype": "text/csv",
+          "pattern": "^\\S+\\.csv$",
+          "description": "Path to comma-separated file containing information about the samples in the experiment.",
+          "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
+          "fa_icon": "fas fa-file-csv"
+        },
+        "database": {
+          "type": "string",
+          "description": "The database to use (e.g. lrna)"
+        },
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+          "fa_icon": "fas fa-folder-open",
+          "default": "results"
+        },
+        "reference_base": {
+          "type": "string",
+          "description": "The location of the reference data (usually set in your config file)"
+        },
+        "run_name": {
+          "type": "string",
+          "description": "A descriptive name for this run"
+        },
+        "build_references": {
+          "type": "boolean",
+          "description": "Alternative workflow to download the reference data"
+        }
+      }
+    },
+    "taxonomic_assignment": {
+      "title": "Taxonomic assignment",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "blast_bitscore_diff": {
+          "type": "integer",
+          "default": 4
+        },
+        "blast_evalue": {
+          "type": "number",
+          "default": 1e-20
+        },
+        "blast_low_complexity": {
+          "type": "string",
+          "default": "-dust no -soft_masking false"
+        },
+        "blast_min_consensus": {
+          "type": "number",
+          "default": 0.51
+        },
+        "blast_perc_id": {
+          "type": "integer",
+          "default": 97
+        },
+        "blast_qcov": {
+          "type": "integer",
+          "default": 100
+        },
+        "blocklist": {
+          "type": "string",
+          "default": "/home/marc/git/sanger-taxonomy/assets/blocklist.txt"
+        },
+        "disable_low_complexity": {
+          "type": "boolean"
+        },
+        "taxid_filter": {
+          "type": "integer",
+          "default": 32524
+        }
+      },
+      "required": [
+        "blast_bitscore_diff",
+        "blast_evalue",
+        "blast_low_complexity",
+        "blast_min_consensus",
+        "blast_perc_id",
+        "blast_qcov",
+        "blocklist",
+        "disable_low_complexity",
+        "taxid_filter"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/input_output_options"
+    },
+    {
+      "$ref": "#/$defs/taxonomic_assignment"
+    }
+  ],
+  "properties": {
+    "reference_version": {
+      "type": "integer",
+      "default": 1,
+      "hidden": true
+    },
+    "logo": {
+      "type": "string",
+      "default": "/home/marc/git/sanger-taxonomy/assets/pipelinelogo.png",
+      "hidden": true
+    },
+    "multiqc_config": {
+      "type": "string",
+      "default": "/home/marc/git/sanger-taxonomy/conf/multiqc_config.yaml",
+      "hidden": true
+    },
+    "multiqc_logo": {
+      "type": "string",
+      "default": "/home/marc/git/sanger-taxonomy/assets/pipelinelogo.png",
+      "hidden": true
+    },
+    "publish_dir_mode": {
+      "type": "string",
+      "default": "copy",
+      "hidden": true
+    },
+    "custom_config_base": {
+      "type": "string",
+      "default": "https://raw.githubusercontent.com/bio-raum/nf-configs/main",
+      "hidden": true
+    }
+  }
+}

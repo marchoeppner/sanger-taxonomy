@@ -24,6 +24,8 @@ process TRACY_CONSENSUS {
     """
     tracy consensus $args -o $result -b $prefix $traces
 
+    sed -i.bak '/^>/s/\$/;size=1/' ${prefix}.consensus.fa
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         Tracy: \$(tracy -v 2>&1 | head -n1 | sed -e "s/.*: v//g")

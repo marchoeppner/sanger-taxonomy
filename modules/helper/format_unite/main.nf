@@ -1,7 +1,7 @@
-process GUNZIP {
-    tag "${zipped}"
+process HELPER_FORMAT_UNITE {
+    tag "${meta.id}"
 
-    label 'medium_serial'
+    label 'short_serial'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -9,20 +9,18 @@ process GUNZIP {
         'ubuntu:20.04' }"
 
     input:
-    tuple val(meta), path(zipped)
+    tuple val(meta), path(fa, stageAs: 'raw/?')
 
     output:
-    tuple val(meta), path(unzipped), emit: gunzip
-    path("versions.yml"), emit: versions
+    tuple val(meta), path('*.fasta')  , emit: clean
+    path("versions.yml")              , emit: versions
 
     script:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: zipped.getBaseName()
-
-    unzipped = prefix
+    // def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: 'unite'
 
     """
-    gunzip $args -c $zipped > $unzipped
+    awk -F'|' '{if (\$0 ~ /^>/) {print ">"\$2} else { print \$0 }}' $fa > ${prefix}.fasta
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

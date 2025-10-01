@@ -1,4 +1,4 @@
-process GUNZIP {
+process HELPER_FORMAT_GENBANK_TAXIDS {
     tag "${zipped}"
 
     label 'medium_serial'
@@ -12,21 +12,18 @@ process GUNZIP {
     tuple val(meta), path(zipped)
 
     output:
-    tuple val(meta), path(unzipped), emit: gunzip
-    path("versions.yml"), emit: versions
+    tuple val(meta), path('genbank2taxid')  , emit: tab
+    path("versions.yml")                    , emit: versions
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: zipped.getBaseName()
-
-    unzipped = prefix
 
     """
-    gunzip $args -c $zipped > $unzipped
+    gunzip $args -c $zipped | cut -f 1,3 | tail -n +2 > genbank2taxid
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        gunzip: \$(echo \$(gunzip --version 2>&1) | sed 's/^.*(gzip) //; s/ Copyright.*\$//')
+        awk: \$(echo \$(awk --version 2>&1) | head -n1 | cut -f3 -d '' | sed 's/,//')
     END_VERSIONS
 
     """
