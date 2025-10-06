@@ -4,7 +4,7 @@
 
 [Pipeline version](#specifying-pipeline-version)
 
-[Resources](#resources)
+[Basic options](#basic-options)
 
 ## Basic execution
 
@@ -53,18 +53,60 @@ nextflow run marchoeppner/pipeline -profile lsh -r 1.0 <other options here>
 
 The `-r` option specifies a github [release tag](https://github.com/marchoeppner/gabi/releases) or branch, so could also point to `main` for the very latest code release. Please note that every major release of this pipeline (1.0, 2.0 etc) comes with a new reference data set, which has the be [installed](installation.md) separately.
 
-## Resources
+## Basic options
 
-The following options can be set to control resource usage outside of a site-specific [config](https://github.com/marchoeppner/nf-configs) file.
+### `--input` [default = null ]
 
-### `--max_cpus` [ default = 16]
+A sample list in TSV format, specifying a sample name and the associated ab1 files. 
 
-The maximum number of cpus a single job can request. This is typically the maximum number of cores available on a compute node or your local (development) machine. 
+```TSV
+sample  fwq rev
+mySample    /path/to/data_1.ab1 /path/to/data_2.ab1
+```
 
-### `--max_memory` [ default = 128.GB ]
+### `--db` [ default = null ]
 
-The maximum amount of memory a single job can request. This is typically the maximum amount og RAM available on a compute node or your local (development) machine. Typically it is advisable to set this a little lower than the maximum amount of RAM to prevent the machine from swapping. 
+The database to perform searches against. For a full list of available options, see `--list_dbs`
 
-### `--max_time`[ default = 240.h ]
+### `--list_dbs`  [ default = false ]
 
-The maximum allowed run/wall time a single job can request. This is mostly relevant for environments where run time is restricted, such as in a computing cluster with active resource manager or possibly some cloud environments.  
+Print a list of available databases to the screen. 
+
+### Blast options
+
+Changes in the following settings will affect the results you obtain from the respective database (increase or decrease stringency).
+
+#### `--blocklist` [ default = null ]
+
+Provide a list of NCBI taxonomy IDs (one per line) that should be masked from the BLAST database (and thus the result). This pipeline uses a built-in [block list](https://raw.githubusercontent.com/marchoeppner/sanger-taxonomy/main/assets/blocklist.txt) - but you can use this option to overwrite it, if need be. A typical use case would be a list of taxa that you know for a fact to be false positive hits. Consider merging your list with the built-in block list to make sure you mask previously identified problematic taxa. 
+
+#### `--disable_low_complexity` [ default = false]
+
+By default, Blast with filter/main low complexity sequences. If your amplicons have very low complexity, you may wish to set this option to disable the masking of low complexity motifs. Effectively deactivates DUST fileter and soft masking.
+
+```bash
+nextflow run marchoeppner/sanger-taxonomy
+-profile apptainer \
+--input samples.tsv \
+--disable_low_complexity ...
+```
+
+#### `--blast_evalue` [ default = "1e-20" ]
+
+Maximal e-value of BLAST results
+
+#### `--blast_qcov` [ default = "100" ]
+
+Amount of the query that has to be covered by a BLAST hit, in percent.
+
+#### `--blast_perc_id` [ default = "97" ]
+
+Minimal identity level between query and BLAST hit, in percent
+
+#### `--blast_bitscore_diff` [ default = 4 ]
+
+Maximal difference between the best BLAST hit's bitscore and the other hits to be kept.
+
+#### `--blast_min_consensus` [ default = 0.51 ]
+
+Minimal consensus level between all BLAST results for a given query to be assigned to a taxonomic node.

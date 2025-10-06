@@ -14,6 +14,7 @@ process TRACY_CONSENSUS {
 
     output:
     tuple val(meta), path('*consensus.fa'), emit: consensus
+    tuple val(meta), path('*consensus.txt'), emit: consensus_txt
     path('versions.yml'), emit: versions
 
     script:

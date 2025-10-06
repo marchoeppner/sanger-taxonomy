@@ -18,7 +18,6 @@ process TRACY_BASECALL {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: meta.sample_id
 
     if (traces.size() > 1) {
         fwd = traces[0].getBaseName() + ".fastq"

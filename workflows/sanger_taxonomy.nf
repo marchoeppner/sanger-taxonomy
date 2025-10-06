@@ -7,6 +7,7 @@ include { TRACY_BASECALL }              from './../modules/tracy/basecall'
 include { FASTQC }                      from './../modules/fastqc'
 
 include { BLAST_TAXONOMY }              from './../subworkflows/blast_taxonomy'
+include { REPORTING }                   from './../subworkflows/reporting'
 
 workflow SANGER_TAXONOMY {
 
@@ -19,7 +20,10 @@ workflow SANGER_TAXONOMY {
 
     ch_versions = Channel.from([])
     multiqc_files = Channel.from([])
+    ch_reporting = Channel.from([])
 
+    pipeline_info = Channel.fromPath(dumpParametersToJSON(params.outdir)).collect()
+    
     if (params.input) {
 
         blast_db = set_blast_db(params.db)
@@ -51,6 +55,7 @@ workflow SANGER_TAXONOMY {
     TRACY_CONSENSUS(
         traces_by_config.both
     )
+    ch_reporting = ch_reporting.mix(TRACY_CONSENSUS.out.consensus_txt, TRACY_CONSENSUS.out.consensus)
     ch_versions = ch_versions.mix(TRACY_CONSENSUS.out.versions)
 
         // Trace file base calling
@@ -73,9 +78,9 @@ workflow SANGER_TAXONOMY {
         ch_taxdb.collect(),
         ch_blocklist.collect()
     )
-
-    multiqc_files = multiqc_files.mix(BLAST_TAXONOMY.out.qc)
-
+    ch_reporting   = ch_reporting.mix(BLAST_TAXONOMY.out.composition, BLAST_TAXONOMY.out.composition_json, BLAST_TAXONOMY.out.filtered_blast, BLAST_TAXONOMY.out.consensus)
+    // multiqc_files = multiqc_files.mix(BLAST_TAXONOMY.out.qc)
+   
     CUSTOM_DUMPSOFTWAREVERSIONS(
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
@@ -86,6 +91,13 @@ workflow SANGER_TAXONOMY {
         multiqc_files.collect(),
         ch_multiqc_config,
         ch_multiqc_logo
+    )
+
+    // Compute reports
+    REPORTING(
+        ch_reporting,
+        CUSTOM_DUMPSOFTWAREVERSIONS.out.yml,
+        pipeline_info
     )
 
     emit:
@@ -100,4 +112,16 @@ def set_blast_db(database) {
     }
     def blast_db = file(params.references.databases[database].blast_db, checkIfExists: true)
     return blast_db
+}
+
+// turn the summaryMap to a JSON file
+def dumpParametersToJSON(outdir) {
+    def filename  = "pipeline_settings.json"
+    def temp_pf   = new File(workflow.launchDir.toString(), ".${filename}")
+    def jsonStr   = groovy.json.JsonOutput.toJson(params)
+    temp_pf.text  = groovy.json.JsonOutput.prettyPrint(jsonStr)
+
+    nextflow.extension.FilesEx.copyTo(temp_pf.toPath(), "${outdir}/pipeline_info/pipeline_settings.json")
+    temp_pf.delete()
+    return file("${outdir}/pipeline_info/pipeline_settings.json")
 }
