@@ -41,6 +41,8 @@ styles.add(ParagraphStyle(name='H2', fontSize=12))
 
 styles.add(ParagraphStyle(name='H2_bg', backColor="#CCCCCC",  borderPadding=2, fontSize=12))
 styles.add(ParagraphStyle(name='Standard', fontSize=10))
+styles.add(ParagraphStyle(name='Gray', fontSize=10, textColor="#9c9c9c"))
+
 styles.add(ParagraphStyle(name='Bold', fontSize=10, fontName="Helvetica-Bold"))
 styles.add(ParagraphStyle(name='H2_right', fontSize=12, alignment=TA_RIGHT))
 styles.add(ParagraphStyle(name='Info', fontSize=8))
@@ -76,6 +78,7 @@ with open(args.json) as json_file:
 sample = data["sample"]
 run_date = data["run_date"]
 alignment = data["tracy"]["alignment"]
+hits = data["filtered"][0:20]
 seqs = data["tracy"]["seqs"]
 composition = data["composition"][0]
 consensus = data["consensus"]
@@ -168,6 +171,27 @@ for row in alignment:
 
 content.append(PageBreak())
 
+content.append(Paragraph("Blast Treffer (Auszug)", styles["H2_bg"]))
+content.append(Spacer(1, 10))
+
+hit_list = [[Paragraph("Accession", styles["Bold"]), Paragraph("Identity", styles["Bold"]), Paragraph("Align. length", styles["Bold"]), Paragraph("Bitscore", styles["Bold"]), Paragraph("Delta Bitscore", styles["Bold"]), Paragraph("Taxon", styles["Bold"])]]
+
+for hit in hits:
+    this_style = styles["Standard"] if (hit["delta_bitscore"] <= settings['blast_bitscore_diff']) else styles["Gray"]
+    row = [Paragraph(hit["subject_acc"].split("_")[0], this_style), Paragraph(str(hit["identity"]), this_style), Paragraph(str(hit["alignment_length"]), this_style), Paragraph(str(hit["bitscore"]), this_style), Paragraph(str(hit["delta_bitscore"]), this_style), Paragraph(hit["subject_name"], this_style)]
+    hit_list.append(row)
+
+hit_list_table = Table(hit_list, colWidths=[3 * cm, 2 * cm, 2 * cm, 2 * cm, 2 * cm, 4 * cm], splitByRow=1, hAlign='LEFT')
+
+hit_list_table.setStyle([
+    ('LINEABOVE', (0, 1), (-1, -1), 0.25, colors.black),
+    ('VALIGN', (0, 0), (-1, -1), 'TOP')
+])
+
+content.append(hit_list_table)
+
+content.append(PageBreak())
+
 content.append(Paragraph("Einstellungen", styles["H2_bg"]))
 content.append(Spacer(1, 10))
 
@@ -183,6 +207,5 @@ software_table.setStyle([
 ])
 
 content.append(software_table)
-
 
 pdf.build(content)
