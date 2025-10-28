@@ -1,0 +1,7 @@
+name: json2report
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconda::cnvkit=0.9.12

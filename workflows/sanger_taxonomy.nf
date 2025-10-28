@@ -17,6 +17,7 @@ workflow SANGER_TAXONOMY {
 
     ch_multiqc_config = params.multiqc_config   ? Channel.fromPath(params.multiqc_config, checkIfExists: true).collect() : Channel.value([])
     ch_multiqc_logo   = params.multiqc_logo     ? Channel.fromPath(params.multiqc_logo, checkIfExists: true).collect() : Channel.value([])
+    ch_logo           = params.logo             ? Channel.fromPath(params.logo, checkIfExists: true).collect() : Channel.fromPath("${baseDir}/assets/pipelinelogo.png").collect()
 
     ch_versions = Channel.from([])
     multiqc_files = Channel.from([])
@@ -97,7 +98,8 @@ workflow SANGER_TAXONOMY {
     REPORTING(
         ch_reporting,
         CUSTOM_DUMPSOFTWAREVERSIONS.out.yml,
-        pipeline_info
+        pipeline_info,
+        ch_logo
     )
 
     emit:
@@ -116,6 +118,12 @@ def set_blast_db(database) {
 
 // turn the summaryMap to a JSON file
 def dumpParametersToJSON(outdir) {
+    
+    params.version = workflow.manifest.version
+    params.pipeline = workflow.manifest.name
+    params.database_info = params.db ? params.references.databases[params.db].description : "user-provided"
+    params.database_version = params.db ? params.references.databases[params.db].version : "user-provided"
+
     def filename  = "pipeline_settings.json"
     def temp_pf   = new File(workflow.launchDir.toString(), ".${filename}")
     def jsonStr   = groovy.json.JsonOutput.toJson(params)

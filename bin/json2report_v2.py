@@ -39,8 +39,9 @@ styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
 styles.add(ParagraphStyle(name='H1', fontSize=14))
 styles.add(ParagraphStyle(name='H2', fontSize=12))
 
-styles.add(ParagraphStyle(name='H2_bg', fontSize=12))
+styles.add(ParagraphStyle(name='H2_bg', backColor="#CCCCCC",  borderPadding=2, fontSize=12))
 styles.add(ParagraphStyle(name='Standard', fontSize=10))
+styles.add(ParagraphStyle(name='Bold', fontSize=10, fontName="Helvetica-Bold"))
 styles.add(ParagraphStyle(name='H2_right', fontSize=12, alignment=TA_RIGHT))
 styles.add(ParagraphStyle(name='Info', fontSize=8))
 styles.add(ParagraphStyle(name='Sequence', fontSize=8, fontName="Courier"))
@@ -80,6 +81,7 @@ composition = data["composition"][0]
 consensus = data["consensus"]
 this_consensus = next(item for item in consensus if item["name"] == composition["name"])
 seq = data["fasta"]
+db = data["pipeline_settings"]["db"]
 
 settings = data["pipeline_settings"]
 
@@ -92,6 +94,11 @@ content.append(Spacer(1, 4))
 d = Drawing(100, 0.5)
 d.add(Line(0, 0, 450, 0))
 content.append(d)
+content.append(Spacer(1, 10))
+
+content.append(Paragraph(f"Pipeline: {settings['pipeline']}", styles["Info"]))
+content.append(Paragraph(f"Version: {settings['version']}", styles["Info"]))
+
 content.append(Spacer(1, 20))
 
 content.append(Paragraph("Übersicht", styles["H2_bg"]))
@@ -100,14 +107,17 @@ content.append(Spacer(1, 10))
 summary = []
 
 summary.append(["Untersuchte Probe", sample])
+summary.append(["Referenz Datenbank", f"{db} ({settings['database_info']}:{settings['database_version']})"])
 summary.append(["Ermitteltes Taxon", Paragraph(composition["name"], styles["Normal"])])
 summary.append(["Taxon ID (NCBI)", Paragraph(composition["taxid"], styles["Normal"])])
-summary.append(["Unterstuetzung", Paragraph(str(round(this_consensus["support"] * 100, 2)), styles["Normal"])])
+support = round(this_consensus["support"] * 100, 2)
+summary.append(["Unterstützung", Paragraph(f"{support} %", styles["Normal"])])
 summary.append(["Datum der Auswertung", run_date])
 
 summary_table = Table(summary, colWidths=[7 * cm, 8 * cm], splitByRow=1, hAlign='LEFT')
 
 summary_table.setStyle([
+    ('LINEABOVE', (0, 1), (-1, -1), 0.25, colors.black),
     ('VALIGN', (0, 0), (-1, -1), 'TOP')
 ])
 
@@ -115,7 +125,34 @@ content.append(summary_table)
 
 content.append(Spacer(1, 20))
 
-content.append(Paragraph("Konsensus-Sequenz", styles["H2_bg"]))
+content.append(Paragraph("Taxonomischer Konsensus", styles["H2_bg"]))
+content.append(Spacer(1, 10))
+
+info = f"""Zusammensetzung der besten BLAST Treffer (max. delta bitscore: {settings['blast_bitscore_diff']}), 
+auf Basis welcher ein Konsensus ermittelt wurde (Anteil >= {settings['blast_min_consensus']}%). Bei widersprüchlichen taxonomischen Signalen
+wird im Zweifelsfall ein Ergebnis auf Genus oder Familienebene bestimmt.
+"""
+content.append(Paragraph(info, styles["Info"]))
+content.append(Spacer(1, 10))
+
+tax_list = [[Paragraph("Taxon", styles["Bold"]), Paragraph("Taxon ID (NCBI)", styles["Bold"]), Paragraph("Anteil", styles["Bold"])]]
+
+for c in this_consensus["tax_list"]:
+    perc = round(c["freq"] * 100, 2)
+    tax_list.append([c["name"], c["taxid"], Paragraph(f"{perc} %", styles["Normal"])])
+
+tax_list_table = Table(tax_list, colWidths=[4 * cm, 4 * cm], splitByRow=1, hAlign='LEFT')
+
+tax_list_table.setStyle([
+    ('LINEABOVE', (0, 1), (-1, -1), 0.25, colors.black),
+    ('VALIGN', (0, 0), (-1, -1), 'TOP')
+])
+
+content.append(tax_list_table)
+
+content.append(PageBreak())
+
+content.append(Paragraph("Sanger Sequenz", styles["H2_bg"]))
 content.append(Spacer(1, 10))
 
 for row in seq:
@@ -123,7 +160,7 @@ for row in seq:
 
 content.append(Spacer(1, 20))
 
-content.append(Paragraph("Konsensus-Bildung", styles["H2_bg"]))
+content.append(Paragraph("Sequenz-Konsensus", styles["H2_bg"]))
 content.append(Spacer(1, 10))
 
 for row in alignment:
