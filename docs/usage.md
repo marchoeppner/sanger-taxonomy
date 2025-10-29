@@ -60,7 +60,7 @@ The `-r` option specifies a github [release tag](https://github.com/marchoeppner
 A sample list in TSV format, specifying a sample name and the associated ab1 files. 
 
 ```TSV
-sample  fwq rev
+sample  fwd rev
 mySample    /path/to/data_1.ab1 /path/to/data_2.ab1
 ```
 
