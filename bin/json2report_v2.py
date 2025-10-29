@@ -131,18 +131,23 @@ content.append(Spacer(1, 20))
 content.append(Paragraph("Taxonomischer Konsensus", styles["H2_bg"]))
 content.append(Spacer(1, 10))
 
-info = f"""Zusammensetzung der besten BLAST Treffer (max. delta bitscore: {settings['blast_bitscore_diff']}),
-auf Basis welcher ein Konsensus ermittelt wurde (Anteil >= {settings['blast_min_consensus']}%). Bei widersprüchlichen taxonomischen Signalen
-wird im Zweifelsfall ein Ergebnis auf Genus oder Familienebene bestimmt.
+info = f"""Zusammensetzung der besten BLAST Treffer (max. delta bitscore:
+{settings['blast_bitscore_diff']}), auf Basis welcher ein Konsensus ermittelt
+wurde (Anteil >= {settings['blast_min_consensus']}%). Bei widersprüchlichen
+taxonomischen Signalen wird im Zweifelsfall ein Ergebnis auf Genus oder
+Familienebene bestimmt.
 """
 content.append(Paragraph(info, styles["Info"]))
 content.append(Spacer(1, 10))
 
-tax_list = [[Paragraph("Taxon", styles["Bold"]), Paragraph("Taxon ID (NCBI)", styles["Bold"]), Paragraph("Anteil", styles["Bold"])]]
+tax_list = [[Paragraph("Taxon", styles["Bold"]),
+             Paragraph("Taxon ID (NCBI)", styles["Bold"]),
+             Paragraph("Anteil", styles["Bold"])]]
 
 for c in this_consensus["tax_list"]:
     perc = round(c["freq"] * 100, 2)
-    tax_list.append([c["name"], c["taxid"], Paragraph(f"{perc} %", styles["Normal"])])
+    tax_list.append([c["name"], c["taxid"],
+                     Paragraph(f"{perc} %", styles["Normal"])])
 
 tax_list_table = Table(tax_list, colWidths=[4 * cm, 4 * cm], splitByRow=1, hAlign='LEFT')
 
@@ -173,15 +178,33 @@ content.append(PageBreak())
 
 content.append(Paragraph("Blast Treffer (Auszug)", styles["H2_bg"]))
 content.append(Spacer(1, 10))
+info = f"""Aufstellung der Top 20 BLAST Treffer. Hervorgehoben sind dabei alle
+Treffer, die innerhalb einer Differenz von {settings['blast_bitscore_diff']}
+Punkten im Bitscore zu dem besten Treffer liegen und für die Konsensus-Findung
+berücksichtigt wurden.
+"""
+content.append(Paragraph(info, styles["Info"]))
+content.append(Spacer(1, 10))
 
-hit_list = [[Paragraph("Accession", styles["Bold"]), Paragraph("Identity", styles["Bold"]), Paragraph("Align. length", styles["Bold"]), Paragraph("Bitscore", styles["Bold"]), Paragraph("Delta Bitscore", styles["Bold"]), Paragraph("Taxon", styles["Bold"])]]
+hit_list = [[Paragraph("Accession", styles["Bold"]),
+             Paragraph("Identity", styles["Bold"]),
+             Paragraph("Qcov", styles["Bold"]),
+             Paragraph("Bitscore", styles["Bold"]),
+             Paragraph("Delta Bitscore", styles["Bold"]),
+             Paragraph("Taxon", styles["Bold"])]]
 
 for hit in hits:
+    qcov = round(((hit["qend"] - hit["qstart"] + 1)/hit["qlen"]) * 100, 2)
     this_style = styles["Standard"] if (hit["delta_bitscore"] <= settings['blast_bitscore_diff']) else styles["Gray"]
-    row = [Paragraph(hit["subject_acc"].split("_")[0], this_style), Paragraph(str(hit["identity"]), this_style), Paragraph(str(hit["alignment_length"]), this_style), Paragraph(str(hit["bitscore"]), this_style), Paragraph(str(hit["delta_bitscore"]), this_style), Paragraph(hit["subject_name"], this_style)]
+    row = [Paragraph(hit["subject_acc"].split("_")[0], this_style),
+           Paragraph(str(hit["identity"]), this_style),
+           Paragraph(str(qcov), this_style),
+           Paragraph(str(hit["bitscore"]), this_style),
+           Paragraph(str(hit["delta_bitscore"]), this_style),
+           Paragraph(hit["subject_name"], this_style)]
     hit_list.append(row)
 
-hit_list_table = Table(hit_list, colWidths=[3 * cm, 2 * cm, 2 * cm, 2 * cm, 2 * cm, 4 * cm], splitByRow=1, hAlign='LEFT')
+hit_list_table = Table(hit_list, colWidths=[2.5 * cm, 2 * cm, 2 * cm, 2 * cm, 2 * cm, 4 * cm], splitByRow=1, hAlign='LEFT')
 
 hit_list_table.setStyle([
     ('LINEABOVE', (0, 1), (-1, -1), 0.25, colors.black),

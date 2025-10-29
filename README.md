@@ -9,6 +9,8 @@ This pipeline takes Sanger ab1 files (forward, reverse) from amplicon sequencing
 
 Sanger-taxonomy was build from concepts and code developed for [FooDMe2](https://github.com/bio-raum/FooDMe2).
 
+![schema](images/sanger-taxonomy.png)
+
 ## Documentation 
 
 1. [What happens in this pipeline?](docs/pipeline.md)

@@ -28,7 +28,10 @@ def main(report, output, bit_diff):
         "alignment_length",
         "mismatch",
         "gaps",
-        "subject_name"
+        "subject_name",
+        "qlen",
+        "qstart",
+        "qend"
     ]
 
     if stat(report).st_size == 0:
