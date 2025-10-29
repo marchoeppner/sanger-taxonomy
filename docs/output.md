@@ -5,7 +5,11 @@
 <details markdown=1>
 <summary>reports</summary>
 
-Add information here
+Reports are stored in the sub-folder "reports". 
+
+Sample.xlsx - A xlsx formatted table with each analysed sequence and the matched taxon
+Sample.pdf - The primary report in PDF Format, including taxonomic assignment and supporting evidence
+Sample.summary.json - A summary of all sample-level results in JSON format
 
 </details>
 

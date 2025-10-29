@@ -131,7 +131,7 @@ content.append(Spacer(1, 20))
 content.append(Paragraph("Taxonomischer Konsensus", styles["H2_bg"]))
 content.append(Spacer(1, 10))
 
-info = f"""Zusammensetzung der besten BLAST Treffer (max. delta bitscore: {settings['blast_bitscore_diff']}), 
+info = f"""Zusammensetzung der besten BLAST Treffer (max. delta bitscore: {settings['blast_bitscore_diff']}),
 auf Basis welcher ein Konsensus ermittelt wurde (Anteil >= {settings['blast_min_consensus']}%). Bei widersprüchlichen taxonomischen Signalen
 wird im Zweifelsfall ein Ergebnis auf Genus oder Familienebene bestimmt.
 """
