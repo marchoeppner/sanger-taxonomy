@@ -59,7 +59,7 @@ workflow SANGER_TAXONOMY {
     ch_reporting = ch_reporting.mix(TRACY_CONSENSUS.out.consensus_txt, TRACY_CONSENSUS.out.consensus)
     ch_versions = ch_versions.mix(TRACY_CONSENSUS.out.versions)
 
-        // Trace file base calling
+    // Trace file base calling
     TRACY_BASECALL(
         INPUT_CHECK.out.traces
     )
