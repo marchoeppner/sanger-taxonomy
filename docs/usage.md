@@ -15,12 +15,12 @@ A basic execution of the pipeline looks as follows:
 a) Without a site-specific config file
 
 ```bash
-nextflow run marchoeppner/gabi -profile singularity --input samples.csv \\
+nextflow run marchoeppner/sanger-taxonomy -profile singularity --input samples.csv \\
 --reference_base /path/to/references \\
 --run_name pipeline-test
 ```
 
-where `path_to_references` corresponds to the location in which you have [installed](installation.md) the pipeline references (this can be omitted to trigger an on-the-fly temporary installation, but is not recommended in production). 
+where `path_to_references` corresponds to the location in which you have [installed](installation.md) the pipeline references. 
 
 In this example, the pipeline will assume it runs on a single computer with the singularity container engine available. Available options to provision software are:
 
@@ -37,7 +37,7 @@ Additional software provisioning tools as described [here](https://www.nextflow.
 b) with a site-specific config file
 
 ```bash
-nextflow run marchoeppner/gabi -profile lsh --input samples.csv \\
+nextflow run marchoeppner/sanger-taxonomy -profile lsh --input samples.csv \\
 --run_name pipeline-test 
 ```
 
@@ -51,7 +51,7 @@ If you are running this pipeline in a production setting, you will want to lock 
 nextflow run marchoeppner/pipeline -profile lsh -r 1.0 <other options here>
 ```
 
-The `-r` option specifies a github [release tag](https://github.com/marchoeppner/gabi/releases) or branch, so could also point to `main` for the very latest code release. Please note that every major release of this pipeline (1.0, 2.0 etc) comes with a new reference data set, which has the be [installed](installation.md) separately.
+The `-r` option specifies a github [release tag](https://github.com/marchoeppner/sanger-taxonomy/releases) or branch, so could also point to `main` for the very latest code release. Please note that every major release of this pipeline (1.0, 2.0 etc) comes with a new reference data set, which has the be [installed](installation.md) separately.
 
 ## Basic options
 
@@ -60,7 +60,7 @@ The `-r` option specifies a github [release tag](https://github.com/marchoeppner
 A sample list in TSV format, specifying a sample name and the associated ab1 files. 
 
 ```TSV
-sample  fwq rev
+sample  fwd rev
 mySample    /path/to/data_1.ab1 /path/to/data_2.ab1
 ```
 
@@ -78,11 +78,11 @@ Changes in the following settings will affect the results you obtain from the re
 
 #### `--blocklist` [ default = null ]
 
-Provide a list of NCBI taxonomy IDs (one per line) that should be masked from the BLAST database (and thus the result). This pipeline uses a built-in [block list](https://raw.githubusercontent.com/marchoeppner/sanger-taxonomy/main/assets/blocklist.txt) - but you can use this option to overwrite it, if need be. A typical use case would be a list of taxa that you know for a fact to be false positive hits. Consider merging your list with the built-in block list to make sure you mask previously identified problematic taxa. 
+Provide a list of NCBI taxonomy IDs (one per line) that should be masked from the BLAST database (and thus the result). This pipeline uses a built-in [block list](https://raw.githubusercontent.com/marchoeppner/sanger-taxonomy/main/assets/blocklist.txt) - but you can use this option to overwrite it, if need be. A typical use case would be a list of taxa that you know for a fact to be false positive hits (like extinct species). Consider merging your list with the built-in block list to make sure you mask previously identified problematic taxa. 
 
 #### `--disable_low_complexity` [ default = false]
 
-By default, Blast with filter/main low complexity sequences. If your amplicons have very low complexity, you may wish to set this option to disable the masking of low complexity motifs. Effectively deactivates DUST fileter and soft masking.
+By default, Blast will filter low complexity sequences. If your amplicons have very low complexity, you may wish to set this option to disable the masking of low complexity motifs. This effectively deactivates the DUST filter and soft masking.
 
 ```bash
 nextflow run marchoeppner/sanger-taxonomy
