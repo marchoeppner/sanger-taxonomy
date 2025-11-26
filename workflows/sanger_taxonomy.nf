@@ -6,6 +6,7 @@ include { TRACY_CONSENSUS }             from './../modules/tracy/consensus'
 include { TRACY_BASECALL }              from './../modules/tracy/basecall'
 include { FASTQC }                      from './../modules/fastqc'
 
+include { CUTADAPT_WORKFLOW }           from './../subworkflows/cutadapt'
 include { BLAST_TAXONOMY }              from './../subworkflows/blast_taxonomy'
 include { REPORTING }                   from './../subworkflows/reporting'
 
@@ -13,34 +14,42 @@ workflow SANGER_TAXONOMY {
 
     main:
 
-    samplesheet =   params.input ? Channel.fromPath(params.input, checkIfExists: true) : Channel.value([])
+    samplesheet =   params.input ? channel.fromPath(params.input, checkIfExists: true) : channel.value([])
 
-    ch_multiqc_config = params.multiqc_config   ? Channel.fromPath(params.multiqc_config, checkIfExists: true).collect() : Channel.value([])
-    ch_multiqc_logo   = params.multiqc_logo     ? Channel.fromPath(params.multiqc_logo, checkIfExists: true).collect() : Channel.value([])
-    ch_logo           = params.logo             ? Channel.fromPath(params.logo, checkIfExists: true).collect() : Channel.fromPath("${baseDir}/assets/pipelinelogo.png").collect()
+    ch_multiqc_config = params.multiqc_config   ? channel.fromPath(params.multiqc_config, checkIfExists: true).collect() : channel.value([])
+    ch_multiqc_logo   = params.multiqc_logo     ? channel.fromPath(params.multiqc_logo, checkIfExists: true).collect() : channel.value([])
+    ch_logo           = params.logo             ? channel.fromPath(params.logo, checkIfExists: true).collect() : channel.fromPath("${baseDir}/assets/pipelinelogo.png").collect()
 
-    ch_versions = Channel.from([])
-    multiqc_files = Channel.from([])
-    ch_reporting = Channel.from([])
+    ch_versions = channel.from([])
+    multiqc_files = channel.from([])
+    ch_reporting = channel.from([])
 
-    pipeline_info = Channel.fromPath(dumpParametersToJSON(params.outdir)).collect()
+    pipeline_info = channel.fromPath(dumpParametersToJSON(params.outdir)).collect()
     
     if (params.input) {
 
-        blast_db = set_blast_db(params.db)
-        version  = params.references.databases[params.db].version
+        if (params.primer_set) {
+            database = params.db
+            blast_db = set_blast_db(database)
+            ch_primers = file(params.fasta, checkIfExists: true)
+            version = "NA"
+        } else {
+            blast_db = set_blast_db(params.db)
+            version  = "user-supplied"
+            ch_primers = file(params.primers_fa, checkIfExists: true)
+        }
 
         if (params.reference_base) {
             tax_nodes           = file(params.references.taxonomy.nodes, checkIfExists: true)          // ncbi taxnomy node file
             tax_rankedlineage   = file(params.references.taxonomy.rankedlineage, checkIfExists: true)  // ncbi rankedlineage file
             tax_merged          = file(params.references.taxonomy.merged, checkIfExists: true)         // ncbi merged file
-            ch_tax_files        = Channel.of([ tax_nodes, tax_rankedlineage, tax_merged ])
-            ch_taxdb            = Channel.fromPath(params.references.taxonomy.taxdb, checkIfExists: true)
+            ch_tax_files        = channel.of([ tax_nodes, tax_rankedlineage, tax_merged ])
+            ch_taxdb            = channel.fromPath(params.references.taxonomy.taxdb, checkIfExists: true)
         }
 
-        ch_blocklist = Channel.fromPath(params.blocklist, checkIfExists: true)
+        ch_blocklist = channel.fromPath(params.blocklist, checkIfExists: true)
 
-        Channel.fromPath(blast_db, checkIfExists: true).map { db ->
+        channel.fromPath(blast_db, checkIfExists: true).map { db ->
             [[id: params.db, version: version], db]
         }.set { ch_blast_db }
     }
@@ -71,9 +80,17 @@ workflow SANGER_TAXONOMY {
     ch_versions = ch_versions.mix(FASTQC.out.versions)
     multiqc_files = multiqc_files.mix(FASTQC.out.zip.map {m,z -> z})
 
+    // trim adapters off reads
+    CUTADAPT_WORKFLOW(
+        TRACY_CONSENSUS.out.consensus,
+        ch_primers
+    )
+    ch_versions = ch_versions.mix(CUTADAPT_WORKFLOW.out.versions)
+    //ch_reporting = ch_reporting.mix(CUTADAPT_WORKFLOW.out.qc)
+
     // Assign taxonomy to sequence
     BLAST_TAXONOMY(
-        TRACY_CONSENSUS.out.consensus,
+        CUTADAPT_WORKFLOW.out.trimmed,
         ch_blast_db.collect(),
         ch_tax_files.collect(),
         ch_taxdb.collect(),

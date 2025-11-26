@@ -1,4 +1,4 @@
-process FASTQ_TO_FASTA {
+process FASTX_FASTQ_TO_FASTA {
     label 'short_serial'
 
     tag "${fq}"

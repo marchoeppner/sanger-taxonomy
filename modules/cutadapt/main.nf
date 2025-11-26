@@ -13,7 +13,7 @@ process CUTADAPT {
     path(primers_rc)
 
     output:
-    tuple val(meta), path('*.trim.fastq.gz'), emit: reads
+    tuple val(meta), path('*.trim.fasta'), emit: reads
     path('*.cutadapt.json')                 , emit: report
     tuple val(meta), path('*.log')          , emit: log
     path 'versions.yml'                     , emit: versions
@@ -24,14 +24,13 @@ process CUTADAPT {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.sample_id}"
-    def trimmed  = "-o ${prefix}.trim.fastq.gz" 
+    def trimmed  = "-o ${prefix}.trim.fasta" 
     def report = "${prefix}.cutadapt.json"
     def options_5p = "-g ^file:${primers}"
     def options_3p = "-a file\$:${primers_rc}"
     
     """
     cutadapt --cores $task.cpus \\
-        --discard-untrimmed \\
         --revcomp \\
         $args \\
         $reads \\

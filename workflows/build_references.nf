@@ -22,9 +22,9 @@ workflow BUILD_REFERENCES {
     NCBI taxonomy files are needed to e.g. mask BLAST databases
     and to determine taxonomic consensus calls
     */
-    taxdb   = Channel.fromPath(params.references.taxonomy.taxdb_url)
-    taxdump = Channel.fromPath(params.references.taxonomy.taxdump_url)
-    taxid   = Channel.fromPath(params.references.taxonomy.taxid_url)
+    taxdb   = channel.fromPath(params.references.taxonomy.taxdb_url)
+    taxdump = channel.fromPath(params.references.taxonomy.taxdump_url)
+    taxid   = channel.fromPath(params.references.taxonomy.taxid_url)
 
     taxdb.mix(taxdump).map { f ->
         def meta = [:]
@@ -46,8 +46,8 @@ workflow BUILD_REFERENCES {
         }
     }
 
-    ch_files = Channel.fromList(database_files)
-    ch_blast_files = Channel.from([])
+    ch_files = channel.fromList(database_files)
+    ch_blast_files = channel.from([])
 
     ch_files.branch { m, r ->
         midori: r.toString().contains('MIDORI')
